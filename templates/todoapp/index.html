@@ -5,29 +5,85 @@
 <div style="margin-top: 50px;" class="ui container">
     <h1 class="ui center aligned header">Мой менеджер задач</h1>
     <h3 class="test_style">Управляй своим временем!</h3>
-    <form class="ui form" action="{% url 'add' %}" method="post">
-        {% csrf_token %}
-        <div class="field">
-            <label>Новая задача</label>
-            <input type="text" name="title" placeholder="Введите название задачи"><br>
-        </div>
-        <button class="ui teal basic button" type="submit">Добавить</button>
-    </form>
 
-{% for todo in todo_list %}
-<div class="ui segment">
-    <p class="ui big header">№{{ todo.id }} {{ todo.title }}</p>
+    <!-- Форма поиска -->
+    <div class="ui segment">
+        <form class="ui form" method="GET" action="{% url 'index' %}">
+            <div class="field">
+                <label>Поиск задач</label>
+                <div class="ui action input">
+                    <input type="text" name="q" placeholder="Введите название задачи" value="{{ request.GET.q }}">
+                    <button class="ui teal basic button" type="submit">Искать</button>
+                    {% if request.GET.q %}
+                    <a class="ui red basic button" href="{% url 'index' %}">Отмена</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
 
-    {% if todo.is_complete == False %}
-    <span class="ui gray label">Не завершено</span>
-    <a class="ui primary basic button" href="{% url 'update' todo_id=todo.id %}">Закрыть</a>
-    {% else %}
-    <span class="ui green label">Завершено</span>
-    <a class="ui blue button" href="{% url 'update' todo_id=todo.id %}">Открыть</a>
-    {% endif %}
-    <a class="ui negative basic button" href="{% url 'delete' todo_id=todo.id %}">Удалить</a>
+    <!-- Форма добавления новой задачи -->
+    <div class="ui segment">
+        <form class="ui form" action="{% url 'add' %}" method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label>Новая задача</label>
+                <input type="text" name="title" placeholder="Введите название задачи" required>
+            </div>
+            <button class="ui teal basic button" type="submit">Добавить</button>
+        </form>
+    </div>
+
+    <!-- Список задач -->
+    {% for todo in todo_list %}
+    <div class="ui segment" style="margin-top: 20px;">
+        <p class="ui big header">№{{ todo.id }} {{ todo.title }}</p>
+        <p>Создано: {{ todo.created_at|date:"d M Y H:i" }}</p> <!-- Дата и время создания -->
+
+        {% if todo.is_complete == False %}
+        <span class="ui gray label">Не завершено</span>
+        <a class="ui primary basic button" href="{% url 'update' todo_id=todo.id %}">Завершить</a>
+        {% else %}
+        <span class="ui green label">Завершено</span>
+        <a class="ui blue button" href="{% url 'update' todo_id=todo.id %}">Открыть</a>
+        {% endif %}
+        <a class="ui negative basic button" href="{% url 'delete' todo_id=todo.id %}" onclick="return confirm('Вы уверены, что хотите удалить эту задачу?');">Удалить</a>
+        <button class="ui yellow basic button" onclick="openEditModal('{{ todo.id }}', '{{ todo.title }}')">Редактировать</button>
+    </div>
+    {% empty %}
+    <div class="ui segment">
+        <p>Задачи не найдены.</p>
+    </div>
+    {% endfor %}
 </div>
-{% endfor %}
+
+<!-- Модальное окно для редактирования -->
+<div id="editModal" class="ui modal">
+    <div class="header">Редактировать задачу</div>
+    <div class="content">
+        <form id="editForm" class="ui form" method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label>Новое название</label>
+                <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи">
+            </div>
+            <button class="ui yellow basic button" type="submit">Сохранить изменения</button>
+        </form>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">Отмена</div>
+    </div>
 </div>
+
+<script>
+    function openEditModal(todoId, todoTitle) {
+        // Установка значений в модальное окно
+        document.getElementById('editTitle').value = todoTitle;
+        document.getElementById('editForm').action = '/edit/' + todoId + '/';
+
+        // Открытие модального окна
+        $('.ui.modal').modal('show');
+    }
+</script>
 
 {% endblock content %}
