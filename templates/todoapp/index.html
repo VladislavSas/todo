@@ -30,6 +30,19 @@
                 <label>Новая задача</label>
                 <input type="text" name="title" placeholder="Введите название задачи" required>
             </div>
+            <div class="field">
+                <label>Категории</label>
+                <div class="ui multiple selection dropdown">
+                    <input type="hidden" name="categories">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Выберите категории</div>
+                    <div class="menu">
+                        {% for category in categories %}
+                        <div class="item" data-value="{{ category.id }}">{{ category.name }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             <button class="ui teal basic button" type="submit">Добавить</button>
         </form>
     </div>
@@ -37,8 +50,20 @@
     <!-- Список задач -->
     {% for todo in todo_list %}
     <div class="ui segment" style="margin-top: 20px;">
-        <p class="ui big header">№{{ todo.id }} {{ todo.title }}</p>
+        <p class="ui big header">{{ todo.title }}</p>
         <p>Создано: {{ todo.created_at|date:"d M Y H:i" }}</p> <!-- Дата и время создания -->
+
+        <!-- Отображение категорий -->
+        <p>
+            {% if todo.categories.all %}
+            <strong>Категории:</strong>
+            {% for category in todo.categories.all %}
+            <span class="ui tag label">{{ category.name }}</span>
+            {% endfor %}
+            {% else %}
+            Нет категорий
+            {% endif %}
+        </p>
 
         {% if todo.is_complete == False %}
         <span class="ui gray label">Не завершено</span>
@@ -47,7 +72,8 @@
         <span class="ui green label">Завершено</span>
         <a class="ui blue button" href="{% url 'update' todo_id=todo.id %}">Открыть</a>
         {% endif %}
-        <a class="ui negative basic button" href="{% url 'delete' todo_id=todo.id %}" onclick="return confirm('Вы уверены, что хотите удалить эту задачу?');">Удалить</a>
+        <!-- Кнопка для вызова модального окна подтверждения удаления -->
+        <button class="ui negative basic button" onclick="openDeleteModal('{{ todo.id }}')">Удалить</button>
         <button class="ui yellow basic button" onclick="openEditModal('{{ todo.id }}', '{{ todo.title }}')">Редактировать</button>
     </div>
     {% empty %}
@@ -67,6 +93,19 @@
                 <label>Новое название</label>
                 <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи">
             </div>
+            <div class="field">
+                <label>Категории</label>
+                <div class="ui multiple selection dropdown">
+                    <input type="hidden" name="categories">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">Выберите категории</div>
+                    <div class="menu">
+                        {% for category in categories %}
+                        <div class="item" data-value="{{ category.id }}">{{ category.name }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             <button class="ui yellow basic button" type="submit">Сохранить изменения</button>
         </form>
     </div>
@@ -75,14 +114,37 @@
     </div>
 </div>
 
+<!-- Модальное окно для подтверждения удаления -->
+<div id="deleteModal" class="ui modal">
+    <div class="header">Подтверждение удаления</div>
+    <div class="content">
+        <p>Вы уверены, что хотите удалить эту задачу?</p>
+    </div>
+    <div class="actions">
+        <div class="ui red deny button">Отмена</div>
+        <form id="deleteForm" method="post">
+            {% csrf_token %}
+            <button class="ui green basic button" type="submit">Удалить</button>
+        </form>
+    </div>
+</div>
+
 <script>
     function openEditModal(todoId, todoTitle) {
-        // Установка значений в модальное окно
+        // Установка значений в модальное окно для редактирования
         document.getElementById('editTitle').value = todoTitle;
         document.getElementById('editForm').action = '/edit/' + todoId + '/';
 
-        // Открытие модального окна
-        $('.ui.modal').modal('show');
+        // Открытие модального окна для редактирования
+        $('#editModal').modal('show');
+    }
+
+    function openDeleteModal(todoId) {
+        // Установка URL для удаления
+        document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
+
+        // Открытие модального окна подтверждения удаления
+        $('#deleteModal').modal('show');
     }
 </script>
 
