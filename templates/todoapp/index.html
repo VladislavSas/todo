@@ -5,6 +5,7 @@
 <div style="margin-top: 50px;" class="ui container">
     <h1 class="ui center aligned header">Мой менеджер задач</h1>
     <h3 class="test_style">Управляй своим временем!</h3>
+<a href="{% url 'calendar' %}" class="ui blue button">Посмотреть календарь</a>
 
     <!-- Форма поиска и фильтрации -->
     <div class="ui segment">
@@ -40,53 +41,63 @@
     </div>
 
     <!-- Модальное окно для редактирования -->
-<div id="editModal" class="ui modal">
-    <div class="header">Редактировать задачу</div>
-    <div class="content">
-        <form id="editForm" class="ui form" method="post">
-            {% csrf_token %}
-            <div class="field">
-                <label>Новое название</label>
-                <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи" required>
-            </div>
-            <div class="field">
-                <label>Категории</label>
-                <div class="ui fluid multiple search selection dropdown" id="editCategoriesDropdown">
-                    <input type="hidden" name="categories" id="editCategories">
-                    <i class="dropdown icon"></i>
-                    <div class="default text">Выберите категории</div>
-                    <div class="menu">
-                        {% for category in categories %}
-                        <div class="item" data-value="{{ category.id }}">{{ category.name }}</div>
-                        {% endfor %}
+    <div id="editModal" class="ui modal">
+        <div class="header">Редактировать задачу</div>
+        <div class="content">
+            <form id="editForm" class="ui form" method="post">
+                {% csrf_token %}
+                <div class="field">
+                    <label>Новое название</label>
+                    <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи" required>
+                </div>
+                <div class="field">
+                    <label>Категории</label>
+                    <div class="ui fluid multiple search selection dropdown" id="editCategoriesDropdown">
+                        <input type="hidden" name="categories" id="editCategories">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">Выберите категории</div>
+                        <div class="menu">
+                            {% for category in categories %}
+                            <div class="item" data-value="{{ category.id }}">{{ category.name }}</div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <button class="ui yellow basic button" type="submit">Сохранить изменения</button>
-        </form>
+                <div class="field">
+                    <label>Приоритет</label>
+                    <div class="ui selection dropdown" id="editPriorityDropdown">
+                        <input type="hidden" name="priority" id="editPriority">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">Выберите приоритет</div>
+                        <div class="menu">
+                            {% for value, label in todo.PRIORITY_CHOICES %}
+                            <div class="item" data-value="{{ value }}">{{ label }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <button class="ui yellow basic button" type="submit">Сохранить изменения</button>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">Отмена</div>
+        </div>
     </div>
-    <div class="actions">
-        <div class="ui black deny button">Отмена</div>
-    </div>
-</div>
-
 
     <!-- Модальное окно для подтверждения удаления -->
-<div id="deleteModal" class="ui modal">
-    <div class="header">Подтверждение удаления</div>
-    <div class="content">
-        <p>Вы уверены, что хотите удалить эту задачу?</p>
+    <div id="deleteModal" class="ui modal">
+        <div class="header">Подтверждение удаления</div>
+        <div class="content">
+            <p>Вы уверены, что хотите удалить эту задачу?</p>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">Отмена</div>
+            <form id="deleteForm" method="post">
+                {% csrf_token %}
+                <button class="ui red basic button" type="submit">Удалить</button>
+            </form>
+        </div>
     </div>
-    <div class="actions">
-        <div class="ui black deny button">Отмена</div>
-        <form id="deleteForm" method="post">
-            {% csrf_token %}
-            <button class="ui red basic button" type="submit">Удалить</button>
-        </form>
-    </div>
-</div>
-
-
 
     <!-- Список задач -->
     {% for todo in todo_list %}
@@ -101,6 +112,18 @@
             {% endfor %}
             {% else %}
             Нет категорий
+            {% endif %}
+        </p>
+        <p>
+            <strong>Приоритет:</strong>
+            {% if todo.priority == 'L' %}
+            <span class="ui label">Низкий</span>
+            {% elif todo.priority == 'M' %}
+            <span class="ui label">Средний</span>
+            {% elif todo.priority == 'H' %}
+            <span class="ui label">Высокий</span>
+            {% else %}
+            Не указан
             {% endif %}
         </p>
         {% if todo.is_complete %}
@@ -131,6 +154,25 @@
         document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
         $('#deleteModal').modal('show');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: [
+                {% for todo in todo_list %}
+                {
+                    title: '{{ todo.title }}',
+                    start: '{{ todo.created_at|date:"Y-m-d" }}',
+                    url: '{% url 'update' todo_id=todo.id %}'
+                },
+                {% endfor %}
+            ],
+            editable: true,
+            selectable: true
+        });
+        calendar.render();
+    });
 </script>
 
 {% endblock content %}

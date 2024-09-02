@@ -13,6 +13,7 @@ class Category(models.Model):
 
 # Модель для задач
 class ToDo(models.Model):
+
     title = models.CharField('Название задания', max_length=500)
     is_complete = models.BooleanField('Выполнено', default=False)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)  # Новое поле для даты и времени создания

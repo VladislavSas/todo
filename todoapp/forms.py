@@ -7,4 +7,5 @@ class ToDoForm(forms.ModelForm):
         fields = ['title', 'categories']  # Добавляем поля формы: название задачи и категории
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),  # Используем виджет для множественного выбора категорий
+
         }

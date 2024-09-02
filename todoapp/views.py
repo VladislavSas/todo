@@ -66,3 +66,8 @@ def edit(request, todo_id):
         'todo': todo,
         'categories': categories,
     })
+
+
+def calendar_view(request):
+    todo_list = ToDo.objects.all()
+    return render(request, 'todoapp/calendar.html', {'todo_list': todo_list})
