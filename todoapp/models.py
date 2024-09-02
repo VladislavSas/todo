@@ -1,5 +1,6 @@
 from django.db import models
 
+# Модель для категорий
 class Category(models.Model):
     name = models.CharField('Название категории', max_length=100, unique=True)
 
@@ -12,7 +13,7 @@ class Category(models.Model):
 
 # Модель для задач
 class ToDo(models.Model):
-    title = models.CharField('Названия задания', max_length=500)
+    title = models.CharField('Название задания', max_length=500)
     is_complete = models.BooleanField('Выполнено', default=False)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)  # Новое поле для даты и времени создания
     categories = models.ManyToManyField(Category, blank=True, verbose_name='Категории')  # Связь многие ко многим с категориями

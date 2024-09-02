@@ -6,12 +6,23 @@ from django.views.decorators.http import require_http_methods
 
 def index(request):
     query = request.GET.get('q')
+    selected_categories = request.GET.getlist('categories')
+
+    todos = ToDo.objects.all()
+
     if query:
-        todos = ToDo.objects.filter(title__icontains=query)
-    else:
-        todos = ToDo.objects.all()
+        todos = todos.filter(title__icontains=query)
+
+    if selected_categories:
+        todos = todos.filter(categories__id__in=selected_categories).distinct()
+
     categories = Category.objects.all()  # Получение всех категорий для отображения в форме
-    return render(request, 'todoapp/index.html', {'todo_list': todos, 'title': 'Главная страница', 'categories': categories})
+    return render(request, 'todoapp/index.html', {
+        'todo_list': todos,
+        'title': 'Главная страница',
+        'categories': categories,
+        'selected_categories': selected_categories,
+    })
 
 @require_http_methods(['POST'])
 @csrf_exempt
@@ -40,8 +51,17 @@ def edit(request, todo_id):
             form.save()
             return redirect('index')
         else:
-            return render(request, 'todoapp/index.html', {'form': form, 'todo': todo, 'error': 'Исправьте ошибки в форме.'})
+            return render(request, 'todoapp/index.html', {
+                'form': form,
+                'todo': todo,
+                'error': 'Исправьте ошибки в форме.',
+                'categories': Category.objects.all(),  # Добавлено получение категорий для отображения в форме
+            })
     else:
         form = ToDoForm(instance=todo)
-    categories = Category.objects.all()  # Получение всех категорий для отображения в форме
-    return render(request, 'todoapp/index.html', {'form': form, 'todo': todo, 'categories': categories})
+        categories = Category.objects.all()  # Получение всех категорий для отображения в форме
+    return render(request, 'todoapp/index.html', {
+        'form': form,
+        'todo': todo,
+        'categories': categories,
+    })

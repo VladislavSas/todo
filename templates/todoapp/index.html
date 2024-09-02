@@ -6,7 +6,7 @@
     <h1 class="ui center aligned header">Мой менеджер задач</h1>
     <h3 class="test_style">Управляй своим временем!</h3>
 
-    <!-- Форма поиска -->
+    <!-- Форма поиска и фильтрации -->
     <div class="ui segment">
         <form class="ui form" method="GET" action="{% url 'index' %}">
             <div class="field">
@@ -19,21 +19,10 @@
                     {% endif %}
                 </div>
             </div>
-        </form>
-    </div>
-
-    <!-- Форма добавления новой задачи -->
-    <div class="ui segment">
-        <form class="ui form" action="{% url 'add' %}" method="post">
-            {% csrf_token %}
-            <div class="field">
-                <label>Новая задача</label>
-                <input type="text" name="title" placeholder="Введите название задачи" required>
-            </div>
             <div class="field">
                 <label>Категории</label>
-                <div class="ui multiple selection dropdown">
-                    <input type="hidden" name="categories">
+                <div class="ui fluid multiple search selection dropdown">
+                    <input type="hidden" name="categories" value="{{ selected_categories|join:',' }}">
                     <i class="dropdown icon"></i>
                     <div class="default text">Выберите категории</div>
                     <div class="menu">
@@ -43,47 +32,14 @@
                     </div>
                 </div>
             </div>
-            <button class="ui teal basic button" type="submit">Добавить</button>
+            <button class="ui teal basic button" type="submit">Применить фильтр</button>
+            {% if selected_categories %}
+            <a class="ui red basic button" href="{% url 'index' %}">Сбросить фильтр</a>
+            {% endif %}
         </form>
     </div>
 
-    <!-- Список задач -->
-    {% for todo in todo_list %}
-    <div class="ui segment" style="margin-top: 20px;">
-        <p class="ui big header">{{ todo.title }}</p>
-        <p>Создано: {{ todo.created_at|date:"d M Y H:i" }}</p> <!-- Дата и время создания -->
-
-        <!-- Отображение категорий -->
-        <p>
-            {% if todo.categories.all %}
-            <strong>Категории:</strong>
-            {% for category in todo.categories.all %}
-            <span class="ui tag label">{{ category.name }}</span>
-            {% endfor %}
-            {% else %}
-            Нет категорий
-            {% endif %}
-        </p>
-
-        {% if todo.is_complete == False %}
-        <span class="ui gray label">Не завершено</span>
-        <a class="ui primary basic button" href="{% url 'update' todo_id=todo.id %}">Завершить</a>
-        {% else %}
-        <span class="ui green label">Завершено</span>
-        <a class="ui blue button" href="{% url 'update' todo_id=todo.id %}">Открыть</a>
-        {% endif %}
-        <!-- Кнопка для вызова модального окна подтверждения удаления -->
-        <button class="ui negative basic button" onclick="openDeleteModal('{{ todo.id }}')">Удалить</button>
-        <button class="ui yellow basic button" onclick="openEditModal('{{ todo.id }}', '{{ todo.title }}')">Редактировать</button>
-    </div>
-    {% empty %}
-    <div class="ui segment">
-        <p>Задачи не найдены.</p>
-    </div>
-    {% endfor %}
-</div>
-
-<!-- Модальное окно для редактирования -->
+    <!-- Модальное окно для редактирования -->
 <div id="editModal" class="ui modal">
     <div class="header">Редактировать задачу</div>
     <div class="content">
@@ -91,12 +47,12 @@
             {% csrf_token %}
             <div class="field">
                 <label>Новое название</label>
-                <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи">
+                <input type="text" name="title" id="editTitle" placeholder="Введите новое название задачи" required>
             </div>
             <div class="field">
                 <label>Категории</label>
-                <div class="ui multiple selection dropdown">
-                    <input type="hidden" name="categories">
+                <div class="ui fluid multiple search selection dropdown" id="editCategoriesDropdown">
+                    <input type="hidden" name="categories" id="editCategories">
                     <i class="dropdown icon"></i>
                     <div class="default text">Выберите категории</div>
                     <div class="menu">
@@ -114,36 +70,65 @@
     </div>
 </div>
 
-<!-- Модальное окно для подтверждения удаления -->
+
+    <!-- Модальное окно для подтверждения удаления -->
 <div id="deleteModal" class="ui modal">
     <div class="header">Подтверждение удаления</div>
     <div class="content">
         <p>Вы уверены, что хотите удалить эту задачу?</p>
     </div>
     <div class="actions">
-        <div class="ui red deny button">Отмена</div>
+        <div class="ui black deny button">Отмена</div>
         <form id="deleteForm" method="post">
             {% csrf_token %}
-            <button class="ui green basic button" type="submit">Удалить</button>
+            <button class="ui red basic button" type="submit">Удалить</button>
         </form>
     </div>
 </div>
 
+
+
+    <!-- Список задач -->
+    {% for todo in todo_list %}
+    <div class="ui segment" style="margin-top: 20px;">
+        <p class="ui big header">{{ todo.title }}</p>
+        <p>Создано: {{ todo.created_at|date:"d M Y H:i" }}</p>
+        <p>
+            {% if todo.categories.all %}
+            <strong>Категории:</strong>
+            {% for category in todo.categories.all %}
+            <span class="ui tag label">{{ category.name }}</span>
+            {% endfor %}
+            {% else %}
+            Нет категорий
+            {% endif %}
+        </p>
+        {% if todo.is_complete %}
+        <span class="ui green label">Завершено</span>
+        <a class="ui blue button" href="{% url 'update' todo_id=todo.id %}">Открыть</a>
+        {% else %}
+        <span class="ui gray label">Не завершено</span>
+        <a class="ui primary basic button" href="{% url 'update' todo_id=todo.id %}">Завершить</a>
+        {% endif %}
+        <button class="ui negative basic button" onclick="openDeleteModal('{{ todo.id }}')">Удалить</button>
+        <button class="ui yellow basic button" onclick="openEditModal('{{ todo.id }}', '{{ todo.title }}')">Редактировать</button>
+    </div>
+    {% empty %}
+    <div class="ui segment">
+        <p>Задачи не найдены.</p>
+    </div>
+    {% endfor %}
+</div>
+
 <script>
     function openEditModal(todoId, todoTitle) {
-        // Установка значений в модальное окно для редактирования
         document.getElementById('editTitle').value = todoTitle;
         document.getElementById('editForm').action = '/edit/' + todoId + '/';
-
-        // Открытие модального окна для редактирования
         $('#editModal').modal('show');
     }
 
     function openDeleteModal(todoId) {
-        // Установка URL для удаления
         document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
-
-        // Открытие модального окна подтверждения удаления
         $('#deleteModal').modal('show');
     }
 </script>
