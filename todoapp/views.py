@@ -8,7 +8,8 @@ def index(request):
     query = request.GET.get('q')
     selected_categories = request.GET.getlist('categories')
 
-    todos = ToDo.objects.all()
+    # Сортировка по дате создания в убывающем порядке
+    todos = ToDo.objects.all().order_by('-created_at')
 
     if query:
         todos = todos.filter(title__icontains=query)
@@ -55,11 +56,11 @@ def edit(request, todo_id):
                 'form': form,
                 'todo': todo,
                 'error': 'Исправьте ошибки в форме.',
-                'categories': Category.objects.all(),  # Добавлено получение категорий для отображения в форме
+                'categories': Category.objects.all(),
             })
     else:
         form = ToDoForm(instance=todo)
-        categories = Category.objects.all()  # Получение всех категорий для отображения в форме
+        categories = Category.objects.all()
     return render(request, 'todoapp/index.html', {
         'form': form,
         'todo': todo,
