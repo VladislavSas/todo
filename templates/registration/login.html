@@ -1,0 +1,15 @@
+{% extends "todoapp/layout.html" %}
+
+{% block content %}
+<div class="ui container" style="margin-top: 50px;">
+    <h2 class="ui center aligned header">Вход</h2>
+    <form method="post" class="ui form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="ui primary button">Войти</button>
+    </form>
+    <div style="margin-top: 20px;">
+        <p>Ещё нет аккаунта? <a href="{% url 'register' %}" class="ui button">Зарегистрироваться</a></p>
+    </div>
+</div>
+{% endblock %}

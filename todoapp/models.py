@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Модель для категорий
 class Category(models.Model):
@@ -25,6 +26,7 @@ class ToDo(models.Model):
     deadline = models.DateField('Срок выполнения', null=True, blank=True)  # Поле для срока выполнения
     priority = models.CharField('Приоритет', max_length=1, choices=PRIORITY_CHOICES, default='L')  # Поле для приоритета
     categories = models.ManyToManyField(Category, blank=True, verbose_name='Категории')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Задание'
@@ -35,7 +37,6 @@ class ToDo(models.Model):
         return self.title
 
     def is_overdue(self):
-        """Проверяет, просрочена ли задача."""
         if self.deadline:
-            return self.deadline < date.today() and not self.is_complete
+            return self.deadline < date.today() and not self.is_complete # просрочена ли задача
         return False

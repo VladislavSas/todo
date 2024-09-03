@@ -1,12 +1,24 @@
 {% extends 'todoapp/layout.html' %}
 
 {% block content %}
-
 <div style="margin-top: 50px;" class="ui container">
     <h1 class="ui center aligned header">Мой менеджер задач</h1>
+
+    {% if user.is_authenticated %}
+    <div class="ui segment">
+        <p>Привет, {{ user.username }}!</p>
+        <a href="{% url 'login' %}" class="ui red button">Выйти</a>
+    </div>
+    {% else %}
+    <div class="ui segment">
+        <p>Вы не авторизованы. <a href="{% url 'login' %}">Войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+    </div>
+    {% endif %}
+
     <h3 class="test_style">Управляй своим временем!</h3>
     <button class="ui primary button" onclick="$('#newTaskModal').modal('show')">Добавить задачу</button>
     <a href="{% url 'calendar' %}" class="ui blue button">Посмотреть календарь</a>
+
 
     <!-- Модальное окно для добавления новой задачи -->
     <div id="newTaskModal" class="ui modal">
@@ -192,15 +204,22 @@
     </div>
     {% endfor %}
 </div>
+{% endblock content %}
 
 <script>
-    function openEditModal(todoId, todoTitle) {
-        document.getElementById('editTitle').value = todoTitle;
-        document.getElementById('editForm').action = '/edit/' + todoId + '/';
-        document.getElementById('editDeadline').value = document.querySelector('#todo_' + todoId + ' .deadline').innerText;
-        document.getElementById('editPriority').value = document.querySelector('#todo_' + todoId + ' .priority').innerText;
-        $('#editModal').modal('show');
-    }
+    function openEditModal(todoId, todoTitle, todoDeadline, todoPriority, todoCategories) {
+    document.getElementById('editTitle').value = todoTitle;
+    document.getElementById('editDeadline').value = todoDeadline;
+    document.getElementById('editPriority').value = todoPriority;
+
+    // Обновляем категории в редактируемой форме
+    $('#editCategoriesDropdown').dropdown('set selected', todoCategories);
+
+    // Устанавливаем action для формы редактирования
+    document.getElementById('editForm').action = '/edit/' + todoId + '/';
+
+    $('#editModal').modal('show');
+}
 
     function openDeleteModal(todoId) {
         document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
@@ -227,4 +246,4 @@
     });
 </script>
 
-{% endblock content %}
+
