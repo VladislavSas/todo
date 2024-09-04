@@ -18,6 +18,8 @@
     <h3 class="test_style">Управляй своим временем!</h3>
     <button class="ui primary button" onclick="$('#newTaskModal').modal('show')">Добавить задачу</button>
     <a href="{% url 'calendar' %}" class="ui blue button">Посмотреть календарь</a>
+    <a href="{% url 'statistics' %}" class="ui blue button">Статистика</a>
+
 
 
     <!-- Модальное окно для добавления новой задачи -->
@@ -90,8 +92,25 @@
                     </div>
                 </div>
             </div>
+            <div class="field">
+                <label>Фильтр по статусу выполнения</label>
+                <select name="status" class="ui dropdown">
+                    <option value="">Все статусы</option>
+                    <option value="complete" {% if request.GET.status == 'complete' %}selected{% endif %}>Завершено</option>
+                    <option value="incomplete" {% if request.GET.status == 'incomplete' %}selected{% endif %}>Не завершено</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Фильтр по приоритету</label>
+                <select name="priority" class="ui dropdown">
+                    <option value="">Все приоритеты</option>
+                    <option value="L" {% if request.GET.priority == 'L' %}selected{% endif %}>Низкий</option>
+                    <option value="M" {% if request.GET.priority == 'M' %}selected{% endif %}>Средний</option>
+                    <option value="H" {% if request.GET.priority == 'H' %}selected{% endif %}>Высокий</option>
+                </select>
+            </div>
             <button class="ui teal basic button" type="submit">Применить фильтр</button>
-            {% if selected_categories %}
+            {% if selected_categories or request.GET.status or request.GET.priority %}
             <a class="ui red basic button" href="{% url 'index' %}">Сбросить фильтр</a>
             {% endif %}
         </form>
@@ -204,46 +223,21 @@
     </div>
     {% endfor %}
 </div>
+
+{% block footer %}
+
+    <div class="ui inverted vertical footer segment" style="padding: 20px 0; background-color: #1b1c1d; color: #fff;">
+        <div class="ui container">
+            <div class="ui center aligned container">
+                <p>© 2024 Мой менеджер задач.</p>
+            </div>
+        </div>
+    </div>
+
+    {% endblock footer %}
 {% endblock content %}
 
-<script>
-    function openEditModal(todoId, todoTitle, todoDeadline, todoPriority, todoCategories) {
-    document.getElementById('editTitle').value = todoTitle;
-    document.getElementById('editDeadline').value = todoDeadline;
-    document.getElementById('editPriority').value = todoPriority;
 
-    // Обновляем категории в редактируемой форме
-    $('#editCategoriesDropdown').dropdown('set selected', todoCategories);
 
-    // Устанавливаем action для формы редактирования
-    document.getElementById('editForm').action = '/edit/' + todoId + '/';
-
-    $('#editModal').modal('show');
-}
-
-    function openDeleteModal(todoId) {
-        document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
-        $('#deleteModal').modal('show');
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            events: [
-                {% for todo in todo_list %}
-                {
-                    title: '{{ todo.title }}',
-                    start: '{{ todo.deadline|date:"Y-m-d" }}',
-                    url: '{% url 'update' todo_id=todo.id %}'
-                },
-                {% endfor %}
-            ],
-            editable: true,
-            selectable: true
-        });
-        calendar.render();
-    });
-</script>
 
 

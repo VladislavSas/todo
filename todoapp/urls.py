@@ -11,4 +11,5 @@ urlpatterns = [
     path('calendar/', views.calendar_view, name='calendar'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('register/', views.register, name='register'),
+    path('statistics/', views.statistics, name='statistics'),
 ]

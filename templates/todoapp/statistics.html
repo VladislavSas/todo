@@ -1,0 +1,51 @@
+{% extends 'todoapp/layout.html' %}
+
+{% block content %}
+<div style="margin-top: 50px;" class="ui container">
+    <h1 class="ui center aligned header">Статистика задач</h1>
+
+<!-- Кнопка возврата на главную страницу -->
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'index' %}" class="ui teal basic button">
+            <i class="arrow left icon"></i>
+            Вернуться на главную
+        </a>
+    </div>
+
+    <div class="ui segment">
+        <h2>Общая информация</h2>
+        <p><strong>Всего задач:</strong> {{ total_tasks }}</p>
+        <p><strong>Завершенные задачи:</strong> {{ completed_tasks }}</p>
+        <p><strong>Не завершенные задачи:</strong> {{ incomplete_tasks }}</p>
+    </div>
+
+    <div class="ui segment">
+        <h2>По приоритетам</h2>
+        <ul>
+            <li><strong>Низкий:</strong> {{ priority_stats.L }}</li>
+            <li><strong>Средний:</strong> {{ priority_stats.M }}</li>
+            <li><strong>Высокий:</strong> {{ priority_stats.H }}</li>
+            <li><strong>Не указан:</strong> {{ priority_stats.None }}</li>
+        </ul>
+    </div>
+
+    <div class="ui segment">
+        <h2>По статусам</h2>
+        <ul>
+            <li><strong>Завершенные:</strong> {{ status_stats.Completed }}</li>
+            <li><strong>Не завершенные:</strong> {{ status_stats.Incomplete }}</li>
+        </ul>
+    </div>
+
+    <div class="ui segment">
+        <h2>По категориям</h2>
+        <ul>
+            {% for category, count in category_stats.items %}
+            <li><strong>{{ category }}:</strong> {{ count }}</li>
+            {% empty %}
+            <li>Нет данных</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock content %}

@@ -7,11 +7,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login as auth_login
 
+
 @login_required
 def index(request):
     query = request.GET.get('q')
     selected_categories = request.GET.getlist('categories')
     selected_deadline = request.GET.get('deadline')
+    status = request.GET.get('status')
+    priority = request.GET.get('priority')
 
     # Фильтрация пустых значений из selected_categories
     selected_categories = [cat for cat in selected_categories if cat.isdigit()]
@@ -32,6 +35,15 @@ def index(request):
             # Если формат даты неверный, просто не применяем фильтр
             pass
 
+    if status:
+        if status == 'complete':
+            todos = todos.filter(is_complete=True)
+        elif status == 'incomplete':
+            todos = todos.filter(is_complete=False)
+
+    if priority:
+        todos = todos.filter(priority=priority)
+
     categories = Category.objects.all()
     return render(request, 'todoapp/index.html', {
         'todo_list': todos,
@@ -39,7 +51,10 @@ def index(request):
         'categories': categories,
         'selected_categories': selected_categories,
         'selected_deadline': selected_deadline,
+        'status': status,
+        'priority': priority,
     })
+
 
 @login_required
 @require_http_methods(['POST'])
@@ -106,3 +121,45 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+@login_required
+def statistics(request):
+    user = request.user
+
+    # Получаем все задачи пользователя
+    todos = ToDo.objects.filter(user=user)
+
+    # Общая статистика
+    total_tasks = todos.count()
+    completed_tasks = todos.filter(is_complete=True).count()
+    incomplete_tasks = total_tasks - completed_tasks
+
+    # Статистика по приоритетам
+    priority_stats = {
+        'L': todos.filter(priority='L').count(),
+        'M': todos.filter(priority='M').count(),
+        'H': todos.filter(priority='H').count(),
+        'None': todos.filter(priority__isnull=True).count()
+    }
+
+    # Статистика по статусам
+    status_stats = {
+        'Completed': completed_tasks,
+        'Incomplete': incomplete_tasks
+    }
+
+    # Статистика по категориям
+    categories = Category.objects.all()
+    category_stats = {}
+    for category in categories:
+        category_stats[category.name] = todos.filter(categories=category).count()
+
+    return render(request, 'todoapp/statistics.html', {
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'incomplete_tasks': incomplete_tasks,
+        'priority_stats': priority_stats,
+        'status_stats': status_stats,
+        'category_stats': category_stats
+    })
+
