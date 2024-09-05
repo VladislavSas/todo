@@ -11,7 +11,7 @@
     </div>
     {% else %}
     <div class="ui segment">
-        <p>Вы не авторизованы. <a href="{% url 'login' %}">Войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+        <p>Вы не авторизованы. <a href="{% url 'login' %}">Войдите</a> или <a href="{% url 'register' %}">Зарегистрируйтесь</a>.</p>
     </div>
     {% endif %}
 
@@ -19,8 +19,6 @@
     <button class="ui primary button" onclick="$('#newTaskModal').modal('show')">Добавить задачу</button>
     <a href="{% url 'calendar' %}" class="ui blue button">Посмотреть календарь</a>
     <a href="{% url 'statistics' %}" class="ui blue button">Статистика</a>
-
-
 
     <!-- Модальное окно для добавления новой задачи -->
     <div id="newTaskModal" class="ui modal">
@@ -119,6 +117,7 @@
     <!-- Модальное окно для редактирования -->
     <div id="editModal" class="ui modal">
         <div class="header">Редактировать задачу</div>
+        <h3>Необходимо выбрать все категории!</h3>
         <div class="content">
             <form id="editForm" class="ui form" method="post">
                 {% csrf_token %}
@@ -216,6 +215,7 @@
         {% endif %}
         <button class="ui negative basic button" onclick="openDeleteModal('{{ todo.id }}')">Удалить</button>
         <button class="ui yellow basic button" onclick="openEditModal('{{ todo.id }}', '{{ todo.title }}')">Редактировать</button>
+
     </div>
     {% empty %}
     <div class="ui segment">
@@ -234,10 +234,8 @@
         </div>
     </div>
 
+
     {% endblock footer %}
+
 {% endblock content %}
-
-
-
-
 

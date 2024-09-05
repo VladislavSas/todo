@@ -8,6 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login as auth_login
 
 
+
 @login_required
 def index(request):
     query = request.GET.get('q')
@@ -162,4 +163,3 @@ def statistics(request):
         'status_stats': status_stats,
         'category_stats': category_stats
     })
-
