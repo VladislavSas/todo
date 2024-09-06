@@ -238,59 +238,50 @@
     {% endblock footer %}
 
 <script>
-    function openEditModal(todoId, title) {
-        // Открыть модальное окно
-        $('#editModal').modal('show');
+    function openEditModal(todoId, title, categories) {
+    // Открыть модальное окно
+    $('#editModal').modal('show');
 
-        // Установить значение полей формы
-        $('#editTaskId').val(todoId);
-        $('#editTitle').val(title);
+    // Установить значение полей формы
+    $('#editTaskId').val(todoId);
+    $('#editTitle').val(title);
 
-        // Настроить модальные категории
-        $('#editCategoriesDropdown').dropdown('set selected', $('#editCategories').val());
-    }
+    // Установить выбранные категории
+    $('#editCategoriesDropdown').dropdown('set selected', categories);
+}
 
-    // Обработка отправки формы через AJAX
-    $('#editForm').on('submit', function(event) {
-        event.preventDefault();  // Отключаем стандартное поведение формы
+// Обработка отправки формы через AJAX
+$('#editForm').on('submit', function(event) {
+    event.preventDefault();  // Отключаем стандартное поведение формы
 
-        var formData = $(this).serialize();  // Собираем данные формы
+    var formData = $(this).serialize();  // Собираем данные формы
 
-        $.ajax({
-            type: 'POST',
-            url: "{% url 'edit_ajax' %}",  // URL для обработки AJAX запроса
-            data: formData,
-            success: function(response) {
-                // Закрыть модальное окно
-                $('#editModal').modal('hide');
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'edit_ajax' %}",  // URL для обработки AJAX запроса
+        data: formData,
+        success: function(response) {
+            // Закрыть модальное окно
+            $('#editModal').modal('hide');
 
-                // Обновить список задач на странице
-                location.reload();  // Обновляем страницу (можно сделать более изящно)
-            },
-            error: function(xhr, status, error) {
-                console.error("Ошибка при отправке формы: ", error);
-            }
-        });
+            // Обновить список задач на странице
+            location.reload();  // Обновляем страницу (можно сделать более изящно)
+        },
+        error: function(xhr, status, error) {
+            console.error("Ошибка при отправке формы: ", error);
+        }
     });
+});
 
 function openDeleteModal(todoId) {
     document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
     $('#deleteModal').modal('show');
 }
- $(document).ready(function() {
-        $('.ui.dropdown').dropdown();
-    });
 
-    function openEditModal(todoId, todoTitle) {
-        document.getElementById('editTitle').value = todoTitle;
-        document.getElementById('editForm').action = '/edit/' + todoId + '/';
-        $('#editModal').modal('show');
-    }
+$(document).ready(function() {
+    $('.ui.dropdown').dropdown();
+});
 
-    function openDeleteModal(todoId) {
-        document.getElementById('deleteForm').action = '/delete/' + todoId + '/';
-        $('#deleteModal').modal('show');
-    }
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -309,6 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 });
+
+
 </script>
 
 {% endblock content %}

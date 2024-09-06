@@ -92,28 +92,22 @@ def delete(request, todo_id):
     todo.delete()
     return redirect('index')
 
-@csrf_exempt
+
 @login_required
-@require_http_methods(['POST'])
+@csrf_exempt  # Отключение проверки CSRF для AJAX
 def edit_ajax(request):
-    todo_id = request.POST.get('id')
-    title = request.POST.get('title')
-    deadline = request.POST.get('deadline')
-    priority = request.POST.get('priority')
-    categories = request.POST.getlist('categories')
+    if request.method == 'POST':
+        todo_id = request.POST.get('id')
+        todo = get_object_or_404(ToDo, id=todo_id, user=request.user)
+        form = ToDoForm(request.POST, instance=todo)
 
-    todo = get_object_or_404(ToDo, id=todo_id, user=request.user)
-    todo.title = title
-    todo.deadline = deadline
-    todo.priority = priority
-    todo.save()
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'errors': form.errors})
 
-    todo.categories.clear()
-    for category_id in categories:
-        category = get_object_or_404(Category, id=category_id)
-        todo.categories.add(category)
-
-    return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'invalid request'}, status=400)
 
 @login_required
 def calendar_view(request):
