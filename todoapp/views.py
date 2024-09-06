@@ -6,7 +6,8 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login as auth_login
-
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 @login_required
@@ -91,21 +92,28 @@ def delete(request, todo_id):
     todo.delete()
     return redirect('index')
 
+@csrf_exempt
 @login_required
-def edit(request, todo_id):
+@require_http_methods(['POST'])
+def edit_ajax(request):
+    todo_id = request.POST.get('id')
+    title = request.POST.get('title')
+    deadline = request.POST.get('deadline')
+    priority = request.POST.get('priority')
+    categories = request.POST.getlist('categories')
+
     todo = get_object_or_404(ToDo, id=todo_id, user=request.user)
-    if request.method == 'POST':
-        form = ToDoForm(request.POST, instance=todo)
-        if form.is_valid():
-            form.save()
-            return redirect('index')
-    else:
-        form = ToDoForm(instance=todo)
-    return render(request, 'todoapp/edit.html', {
-        'form': form,
-        'todo': todo,
-        'categories': Category.objects.all(),
-    })
+    todo.title = title
+    todo.deadline = deadline
+    todo.priority = priority
+    todo.save()
+
+    todo.categories.clear()
+    for category_id in categories:
+        category = get_object_or_404(Category, id=category_id)
+        todo.categories.add(category)
+
+    return JsonResponse({'status': 'success'})
 
 @login_required
 def calendar_view(request):
@@ -163,3 +171,4 @@ def statistics(request):
         'status_stats': status_stats,
         'category_stats': category_stats
     })
+
